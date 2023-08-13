@@ -1,1 +1,84 @@
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+
+<SfButton Content="Persist selection" OnClick=@(() => persistSelection = !persistSelection)></SfButton> -> @persistSelection
+<br>
+<SfButton Content="Enable toggle" OnClick="@(() => enableToggle = !enableToggle)"></SfButton> -> @enableToggle
+<br>
+<SfButton Content="Selection type" OnClick="HandleSelectionType"></SfButton> ->@selectionType
+<br>
+<SfButton Content="Selection Mode" OnClick="HandleSelectionMode"></SfButton> ->@selectionMode
+<br>
+<SfButton Content="Drag Selection" OnClick="@(() => dragSelection = !dragSelection)"></SfButton> ->@dragSelection
+<br>
+
+<SfGrid DataSource="@Orders" AllowSelection="true" AllowPaging="true" Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update" })">
+    <GridSelectionSettings Mode="@selectionMode" Type=@selectionType PersistSelection=@persistSelection EnableToggle=@enableToggle
+                           AllowDragSelection=@dragSelection>
+    </GridSelectionSettings>
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true"></GridEditSettings>
+    <GridColumns>
+        <GridColumn Field=@nameof(Order.OrderID) HeaderText="Order ID" IsPrimaryKey=true TextAlign="TextAlign.Right" Width="120"></GridColumn>
+        <GridColumn Field=@nameof(Order.CustomerID) HeaderText="Customer Name" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(Order.OrderDate) HeaderText=" Order Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+        <GridColumn Field=@nameof(Order.Freight) HeaderText="Freight" Format="C2" TextAlign="TextAlign.Right" Width="120"></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+@code
+{
+    public List<Order> Orders { get; set; }
+    public bool persistSelection { get; set; } = false;
+    public bool dragSelection { get; set; } = false;
+    public bool enableToggle { get; set; } = true;
+    public Syncfusion.Blazor.Grids.SelectionType selectionType { get; set; } = Syncfusion.Blazor.Grids.SelectionType.Single;
+    public Syncfusion.Blazor.Grids.SelectionMode selectionMode { get; set; } = Syncfusion.Blazor.Grids.SelectionMode.Row;
+
+    public void HandleSelectionType()
+    {
+        if (selectionType == Syncfusion.Blazor.Grids.SelectionType.Single)
+        {
+            selectionType = Syncfusion.Blazor.Grids.SelectionType.Multiple;
+        }
+        else
+        {
+            selectionType = Syncfusion.Blazor.Grids.SelectionType.Single;
+        }
+    }
+
+    public void HandleSelectionMode()
+    {
+        if (selectionMode == Syncfusion.Blazor.Grids.SelectionMode.Row)
+        {
+            selectionMode = Syncfusion.Blazor.Grids.SelectionMode.Cell;
+        }
+        else if (selectionMode == Syncfusion.Blazor.Grids.SelectionMode.Cell)
+        {
+            selectionMode = Syncfusion.Blazor.Grids.SelectionMode.Both;
+        }
+        else if (selectionMode == Syncfusion.Blazor.Grids.SelectionMode.Both)
+        {
+            selectionMode = Syncfusion.Blazor.Grids.SelectionMode.Row;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Orders = Enumerable.Range(1, 75).Select(x => new Order()
+            {
+                OrderID = 1000 + x,
+                CustomerID = (new string[] { "ALFKI", "ANANTR", "ANTON", "BLONP", "BOLID" })[new Random().Next(5)],
+                Freight = 2.1 * x,
+                OrderDate = (new DateTime[] { new DateTime(2010, 5, 1), new DateTime(2010, 5, 2), new DateTime(2010, 5, 3), })[new Random().Next(3)],
+            }).ToList();
+    }
+
+    public class Order
+    {
+        public int? OrderID { get; set; }
+        public string CustomerID { get; set; }
+        public DateTime? OrderDate { get; set; }
+        public double? Freight { get; set; }
+    }
+}
 
