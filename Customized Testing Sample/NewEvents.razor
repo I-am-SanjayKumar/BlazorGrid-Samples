@@ -1,0 +1,463 @@
+@page "/"
+
+<p>Contains the list of newly introduced events.</p>
+@using Syncfusion.Blazor.Grids
+@using Syncfusion.Blazor.Buttons
+
+@*@{
+    var Initial = (new string[] { "OrderID" });
+}*@
+
+@{
+    var InitSearch = (new string[] { "CustomerID" });
+}
+
+<SfButton OnClick="Paging" Content="GoToPage"></SfButton>
+<SfButton OnClick="Refresh" Content="RefreshGrid"></SfButton>
+<SfButton OnClick="Sorting" Content="Sorting"></SfButton>
+<SfButton OnClick="SortColumn" Content="SortColumns"></SfButton>
+<SfButton OnClick="ClearSorting" Content="ClearSorting"></SfButton>
+<SfButton OnClick="Grouping" Content="Grouping"></SfButton>
+<SfButton OnClick="UnGrouping" Content="UnGrouping"></SfButton>
+<SfButton OnClick="ClearGrouping" Content="ClearGrouping"></SfButton>
+<SfButton OnClick="Search" Content="Search"></SfButton>
+<SfButton OnClick="ClearSearch" Content="ClearSearch"></SfButton>
+<SfButton OnClick="AddNewRecord" Content="AddEmptyRecord"></SfButton>
+<SfButton OnClick="AddRecord" Content="AddRecordwithData"></SfButton>
+<SfButton OnClick="UpdateRecord" Content="UpdateRecord"></SfButton>
+<SfButton OnClick="DeleteRecord" Content="DeleteRecord"></SfButton>
+<SfButton OnClick="DeleteData" Content="DeleteData"></SfButton>
+<SfButton OnClick="Cancel" Content="Cancel"></SfButton>
+<SfButton OnClick="ReorderColumns" Content="ReorderColumn"></SfButton>
+<SfButton OnClick="ReorderColumnsIndex" Content="ReorderIndex"/>
+<SfButton OnClick="ReorderMultipleColumns" Content="RorderMC"/>
+<SfButton OnClick="ReOrder" Content="ReorderBasedonTarget" />
+<SfButton OnClick="EditCell" Content="EditCell"/>
+<SfButton OnClick="StartEdit" Content="StartEdit"/>
+<SfButton OnClick="HideColumnDynamically" Content="HideColumn Dynamically" />
+<SfButton OnClick="Filtering" Content="Filtering"></SfButton>
+<SfButton OnClick="ClearFilterings" Content="ClearFilterings"></SfButton>
+<SfButton OnClick="ShowColumns" Content="ShowColumn" />
+<SfButton OnClick="HideColumns" Content="HideColumn" />
+
+
+<SfGrid @ref="RefGrid" DataSource="@Orders" AllowPaging="true" AllowRowDragAndDrop=false AllowFiltering=true AllowSelection=true AllowSorting=true ShowColumnChooser=true AllowReordering=true
+    AllowResizing=true AllowGrouping=true ShowColumnMenu=false
+    Toolbar="@(new List<string>() { "Add", "Edit", "Delete", "Cancel", "Update", "ColumnChooser", "Search", "Print" })" Height="315">
+    <GridPageSettings PageCount="5" PageSizes="true"></GridPageSettings>
+    <GridEditSettings AllowAdding="true" AllowEditing="true" AllowDeleting="true" Mode="EditMode.Normal"></GridEditSettings>
+    <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+    <GridSelectionSettings Type="Syncfusion.Blazor.Grids.SelectionType.Multiple"></GridSelectionSettings>
+    @*<GridSearchSettings Fields=@InitSearch Operator=Syncfusion.Blazor.Operator.Contains Key="anton" IgnoreCase="true"></GridSearchSettings>*@
+    @*<GridGroupSettings Columns="@Initial"></GridGroupSettings>*@
+   @* <GridSortSettings>
+        <GridSortColumns>
+            <GridSortColumn Field="OrderDate" Direction="SortDirection.Ascending"></GridSortColumn>
+            <GridSortColumn Field="Freight" Direction="SortDirection.Descending"></GridSortColumn>
+        </GridSortColumns>
+    </GridSortSettings>*@ @*OnActionBegin="ActionBeginHandler" OnActionComplete="ActionCompletedHandler" *@
+    <GridEvents PageChanging="BeforePagingHandler" PageChanged="AfterPagingHandler"
+                Sorting="BeforeSortingHandler" Sorted="AfterSortingHandler"
+                Searching="SearchBeginHandler" Searched="SearchCompleteHandler" 
+                Grouping="BeforeGroupingHandler" Grouped="AfterGroupingHandler"
+                Filtering="FilteringHandler" Filtered="FilteredHandler"
+                RowCreating="BeforeAddHandler" RowCreated="AfterAddHandler"
+                RowUpdating="BeforeSaveHandler" RowUpdated="AfterSaveHandler"
+                RowEditing="BeforeEdit" RowEdited="AfterEdit"
+                OnRowEditStart="BeforeEditingHandler"
+                OnBeginEdit="OnBeginEditHandler"
+                RowDeleting="BeforeDeleteHandler" RowDeleted="AfterDeleteHandler"
+                EditCanceling="BeforeCancelHandler" EditCanceled="AfterCancelHandler" 
+                ColumnReordering="BeforeReorderHandler" ColumnReordered="AfterReorderHandler"
+                ColumnVisibilityChanging="BeforeColumnsChanging" ColumnVisibilityChanged="AfterColumnsChanged"
+                FilterDialogOpening="FilterDialogOpening" FilterDialogOpened="FilterDialogOpened"
+                CheckboxFilterSearching="CheckBoxFilterSearch"
+                 TValue="Order"></GridEvents>
+    <GridColumns>
+        <GridColumn Field=@nameof(Order.OrderID) HeaderText="OrderID" IsPrimaryKey=true  ValidationRules="@(new ValidationRules{ Required=true})" TextAlign="TextAlign.Right" Width="120"></GridColumn>
+        @*<GridForeignColumn Field=@nameof(Order.EmployeeID) HeaderText="Employee Name" ForeignKeyValue="FirstName" ForeignDataSource="@Employees" Width="150"></GridForeignColumn>*@
+        <GridColumn Field=@nameof(Order.CustomerID) HeaderText="Customer Name" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(Order.OrderDate) HeaderText=" Order Date" Format="d" Type="ColumnType.Date" TextAlign="TextAlign.Right" Width="130"></GridColumn>
+        <GridColumn Field=@nameof(Order.Freight) HeaderText="Freight" Format="C2" TextAlign="TextAlign.Right" Width="120"></GridColumn>
+        <GridColumn Field=@nameof(Order.ShipCountry) HeaderText="ShipCountry" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(Order.ShipCity) HeaderText="ShipCity" Width="150"></GridColumn>
+        <GridColumn Field=@nameof(Order.ShipName) HeaderText="ShipName" Width="150" ></GridColumn>
+    </GridColumns>
+</SfGrid>
+
+@code{
+    SfGrid<Order>RefGrid{ get; set; }
+    public List<Order> Orders { get; set; }
+    public List<EmployeeData> Employees { get; set; }
+    public bool visibility { get; set; }
+
+    public void HideColumnDynamically()
+    {
+        visibility = !visibility;
+    }
+
+    protected override void OnInitialized()
+    {
+        Orders = Enumerable.Range(1, 75).Select(x => new Order()
+        {
+            OrderID = 0 + x,
+            CustomerID = (new string[] { "ALFKI", "ANANTR", "ANTON", "BLONP", "BOLID" })[new Random().Next(5)],
+            Freight = 2.1 * x,
+            EmployeeID = x,
+            OrderDate = DateTime.Now.AddDays(-x),
+            ShipCountry = (new string[] { "Argentina", "Austria", "Belgium", "Brazil", "Canada" })[new Random().Next(5)],
+            ShipCity = (new string[] { "Graz", "Campinas", "Montréal", "Resende", "Bruxelles" })[new Random().Next(5)],
+            ShipName = (new string[] { "Alfreds Futterkiste", "Ana Trujillo Emparedados y helados", "Antonio Moreno Taquería", "Around the Horn", "Bólido Comidas preparadas" })[new Random().Next(5)],
+        }).ToList();
+
+        Employees = Enumerable.Range(1, 75).Select(x => new EmployeeData()
+        {
+            EmployeeID = x,
+            FirstName = (new string[] { "Nancy", "Andrew", "Janet", "Margaret", "Steven" })[new Random().Next(5)],
+        }).ToList();
+    }
+    public async void Refresh()
+    {
+        await RefGrid.Refresh();
+    }
+    public async void ShowColumns()
+    {
+        string[] columns = new string[] { "OrderID" };
+        await RefGrid.ShowColumnsAsync(columns);
+    }
+    public async void HideColumns()
+    {
+        string[] columns = new string[] { "OrderID" };
+        await RefGrid.HideColumnsAsync(columns);
+    }
+    public async void ClearSorting()
+    {
+        await RefGrid.ClearSortingAsync();
+    }
+    public async void Sorting()
+    {
+        await RefGrid.SortColumnAsync("OrderID", SortDirection.Descending);
+    }
+    public async void SortColumn()
+    {
+        List<SortColumn> sortColumns = new List<SortColumn>();
+        sortColumns.Add(new() { Field = nameof(Order.Freight), Direction = SortDirection.Descending });
+        sortColumns.Add(new() { Field = nameof(Order.CustomerID), Direction = SortDirection.Ascending });
+        await RefGrid.SortColumnsAsync(sortColumns, true);
+    }
+    public async void Grouping()
+    {
+        await RefGrid.GroupColumnAsync("OrderID");
+    }
+    public async void UnGrouping()
+    {
+        await RefGrid.UngroupColumnAsync("OrderID");
+    }
+    public async void ClearGrouping()
+    {
+        await RefGrid.ClearGroupingAsync();
+    }
+    public async void Filtering()
+    {
+        await RefGrid.FilterByColumnAsync("OrderID", "startswith", "2");
+    }
+    public async void ClearFilterings()
+    {
+        await RefGrid.ClearFilteringAsync();
+    }
+    public async void Search()
+    {
+        await RefGrid.SearchAsync("ANTON");
+    }
+    public async void ClearSearch()
+    {
+        await RefGrid.SearchAsync("");
+    }
+    public async void AddNewRecord()
+    {
+        await RefGrid.AddRecordAsync();
+    }
+    public async void AddRecord()
+    {
+        await RefGrid.AddRecordAsync(new Order() { 
+            OrderID = 1, 
+            CustomerID = "ALFKI", 
+            Freight = 2.1 * new Random().Next(100), 
+            OrderDate = DateTime.Now.AddDays(-new Random().Next(100)) 
+        });
+    }
+    public async void UpdateRecord()
+    {
+        await RefGrid.UpdateRowAsync(3, new Order()
+        {
+            OrderID = 4,
+            CustomerID = "ABCDEFGH",
+            Freight = 1.2,
+            OrderDate = DateTime.Now.AddDays(-new Random().Next(100))
+        });
+    }
+    public async void DeleteRecord()
+    {
+        await RefGrid.DeleteRecordAsync();
+    }
+    public async void DeleteData()
+    {
+        var data = Orders[0];
+        await RefGrid.DeleteRecordAsync("OrderID", data);
+
+        //var data = new Order(){
+        //    OrderID = 1001,
+        //    CustomerID = "ALFKI",
+        //    Freight = 2.1 * 1,
+        //    OrderDate = DateTime.Now.AddDays(-1),
+        //};
+        //await RefGrid.DeleteRecordAsync("OrderID", data);
+    }
+    public async void Cancel()
+    {
+        await RefGrid.CloseEditAsync();
+    }
+    public async void ReorderColumns()
+    {
+        await RefGrid.ReorderColumnAsync("OrderID", "CustomerID");
+    }
+    public async void ReorderColumnsIndex()
+    {
+        await RefGrid.ReorderColumnByIndexAsync(0, 2);
+    }
+    public async void ReorderMultipleColumns()
+    {
+        await RefGrid.ReorderColumnsAsync(new string[] { "OrderID", "CustomerID" }, "OrderDate");
+    }
+    public async void ReOrder()
+    {
+        await RefGrid.ReorderColumnByTargetIndexAsync("OrderID", 2);
+    }
+    public async void Paging()
+    {
+        await RefGrid.GoToPageAsync(2);
+    }
+
+    public async void EditCell()
+    {
+        await RefGrid.EditCellAsync(2, "CustomerID");
+    }
+
+    public async void StartEdit()
+    {
+        await RefGrid.StartEditAsync();
+    }
+
+    public void FilteringHandler(FilteringEventArgs args)//Filtering
+    {
+        // args.Cancel = true;
+    }
+    public void FilteredHandler(FilteredEventArgs args)//Filtered
+    {
+
+    }
+
+    public void FilterDialogOpening(FilterDialogOpeningEventArgs args)//FilterDialogOpening
+    {
+        if (args.ColumnName == "OrderDate")//Specify Field name
+        {
+             args.FilterOperators = CustomerIDOperator;
+        }
+        //args.FilterChoiceCount = 5;
+        //List<object> data = new List<object>()
+        //{
+        //    new Order(){OrderID = 1000 },
+        //    new Order(){OrderID = 2000 },
+        //    new Order(){OrderID = 3000 },
+        //    new Order(){OrderID = 4000 },
+        //    new Order(){OrderID = 5000 },
+        //    new Order(){OrderID = 6000 },
+        //};
+        //args.CheckboxListData = data;
+
+    }
+
+    public class Operators : IFilterOperator
+    {
+        public Syncfusion.Blazor.Operator Value { get; set; }
+        public string Text { get; set; }
+    }
+
+    List<IFilterOperator> CustomerIDOperator = new List<IFilterOperator> {
+        new Operators() { Text = "Equal", Value = Syncfusion.Blazor.Operator.Equal },
+        new Operators() { Text = "Contains", Value = Syncfusion.Blazor.Operator.Contains },
+        new Operators() { Text = "Greater/Equal(Between)", Value = Syncfusion.Blazor.Operator.GreaterThanOrEqual}
+        };
+
+    public void FilterDialogOpened(FilterDialogOpenedEventArgs args)//FilterDialogOpened
+    {
+
+    }
+
+    public void BeforePagingHandler(GridPageChangingEventArgs args) //PageChanging
+    {
+        // args.Cancel = true;
+    }
+    public void AfterPagingHandler(GridPageChangedEventArgs args) //PageChanged
+    {
+
+    }
+
+    public void CheckBoxFilterSearch(CheckboxFilterSearchingEventArgs args)//CheckBoxFilterSearch
+    {
+
+    }
+
+    public void BeforeSortingHandler(SortingEventArgs args) //BeforeSorting
+    {
+        // args.Cancel = true;
+    }
+    public void AfterSortingHandler(SortedEventArgs args) //AfterSorting
+    {
+
+    }
+    public void SearchBeginHandler(SearchingEventArgs args) //SearchBegin
+    {
+       //  args.Cancel = true;
+    }
+    public void SearchCompleteHandler(SearchedEventArgs args) //SearchComplete
+    {
+
+    }
+    public void BeforeGroupingHandler(GroupingEventArgs args) //BeforeGrouping
+    {
+        // args.Cancel = true;
+        //if (args.Action == "Add")
+        //{
+        //    args.Cancel = true;
+        //} 
+        @*args.Cancel = true;*@
+    }
+    public void AfterGroupingHandler(GroupedEventArgs args) //AfterGrouping
+    {
+
+    }
+    public void BeforeAddHandler(RowCreatingEventArgs<Order> args) //BeforeAdd
+    {
+        // args.Cancel = true;
+        //args.Data = new Order() { 
+        //    OrderID = 1000, CustomerID = "ALFKI", Freight = 2.1 * new Random().Next(100), 
+        //    OrderDate = DateTime.Now.AddDays(-new Random().Next(100)) 
+        //};
+        // args.Index = 3;
+    }
+    public void BeforeEdit(RowEditingEventArgs<Order> args) //RowEditing
+    {
+        // args.Cancel = true;
+    }
+    public void AfterEdit(RowEditedEventArgs<Order> args) //RowEdited
+    {
+
+    }
+    public void AfterAddHandler(RowCreatedEventArgs<Order> args) //AfterAdd
+    {
+
+    }
+    @*public void BeforeBeginEditHandler(EditingEventArgs<Order> args) //BeforeBeginEdit
+    {
+
+
+    }*@
+    public void AfterBeginEditHandler(RowEditedEventArgs<Order> args) //AfterBeginEdit
+    {
+
+    }
+    public void BeforeEditingHandler(OnRowEditStartEventArgs args) //BeforeEditing
+    {
+        // args.Cancel = true;
+        // args.PreventDataClone = true;
+    }
+    public void BeforeSaveHandler(RowUpdatingEventArgs<Order> args) //BeforeSave
+    {
+        // args.Cancel = true;
+    }
+    public void AfterSaveHandler(RowUpdatedEventArgs<Order> args) //AfterSave
+    {
+
+    }
+    public void BeforeDeleteHandler(RowDeletingEventArgs<Order> args) //BeforeDelete
+    {
+        // args.Cancel = true;
+    }
+    public void AfterDeleteHandler(RowDeletedEventArgs<Order> args) //AfterDelete
+    {
+    }
+    public void BeforeCancelHandler(EditCancelingEventArgs<Order> args) //BeforeCancel
+    {
+        // args.Cancel = true; 
+    }
+    public void AfterCancelHandler(EditCanceledEventArgs<Order> args) //AfterCancel
+    {
+    }
+    public void BeforeReorderHandler(ColumnReorderingEventArgs args) //BeforeReorder
+    {
+        // args.Cancel = true;
+        //GridColumn column = RefGrid.Columns[2];
+        //args.ToColumn = column;
+
+    }
+    public void AfterReorderHandler(ColumnReorderedEventArgs args) //AfterReorder
+    {
+    }
+    public void BeforeColumnsChanging(ColumnVisibilityChangingEventArgs args)//BeforeColumnsChanging
+    {
+
+    }
+    public void AfterColumnsChanged(ColumnVisibilityChangedEventArgs args)//AfterColumnsChanged
+    {
+
+    }
+    @*public void BeforeRowDragAndDrop(RowDragAndDroppingEventArgs args)//RowDragAndDropping
+    {
+        
+
+    }*@
+    @*public void AfterRowDragAndDrop(RowDragAndDroppedEventArgs args)//RowDragAndDropped
+    {
+
+    }*@
+    public void OnBeginEditHandler(BeginEditArgs<Order> args)
+    {
+
+    }
+    public void ActionBeginHandler(ActionEventArgs<Order> args)
+    {
+        if (args.RequestType == Syncfusion.Blazor.Grids.Action.Cancel)
+        {
+            
+        }
+        //if (args.RequestType == Syncfusion.Blazor.Grids.Action.Paging)
+        //{
+        //    args.PreventRender = true;
+        //}
+        // args.Cancel = args.RequestType == Syncfusion.Blazor.Grids.Action.Grouping;
+    }
+
+    public void ActionCompletedHandler(ActionEventArgs<Order> args)
+    {
+        // Here, you can customize your code.
+    }
+
+    public class Order
+    {
+        public int? OrderID { get; set; }
+        public string CustomerID { get; set; }
+        public DateTime? OrderDate { get; set; }
+        public int? EmployeeID { get; set; }
+        public double? Freight { get; set; }
+        public string ShipCity { get; set; }
+        public string ShipCountry { get; set; }
+        public string ShipName { get; set; }
+    }
+
+    public class EmployeeData
+    {
+        public int? EmployeeID { get; set; }
+        public string FirstName { get; set; }
+    }
+}
